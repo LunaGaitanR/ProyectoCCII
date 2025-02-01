@@ -102,9 +102,7 @@ class Aplicacion:
         tk.Button(frame_reset, text="Restablecer", command=self.restablecer_grafo, font=("Arial", 12)).pack(pady=10)
 
     def ajustar_espacios(self):
-        """Ajusta las actividades y umbrales para que todos los espacios sean habitables."""
-        # Obtener las actividades únicas disponibles
-        actividades = list(set(self.edificio.actividades.values()))
+        """Intercambia las actividades de los nodos no habitables para que todos los nodos sean habitables."""
         aristas = {
             ('H2', 'H3'): 'Ladrillo',
             ('H1', 'S'): 'Loseta',
@@ -116,18 +114,40 @@ class Aplicacion:
             ('H3', 'E'): 'Loseta',
         }
 
-        # Asignar actividades al azar y ajustar umbrales
-        for espacio_id in self.edificio.espacios:
-            actividad_aleatoria = random.choice(actividades)
-            ruido_total = self.edificio.espacios[espacio_id].calcular_ruido(self.edificio.materiales, self.edificio.ruidos, aristas)
+        # Identificar nodos habitables y no habitables
+        nodos_no_habitables = []
+        nodos_habitables = []
+
+        for espacio_id, espacio in self.edificio.espacios.items():
+            ruido_total = espacio.calcular_ruido(self.edificio.materiales, self.edificio.ruidos, aristas)
+            umbral = self.edificio.umbrales_habitabilidad.get(espacio_id, float('inf'))
+            if ruido_total > umbral:
+                nodos_no_habitables.append(espacio_id)
+            else:
+                nodos_habitables.append(espacio_id)
+
+        # Si no hay nodos no habitables, no es necesario hacer ajustes
+        if not nodos_no_habitables:
+            messagebox.showinfo("Info", "Todos los nodos ya son habitables.")
+            return
+
+        # Intercambiar actividades entre nodos no habitables
+        actividades_no_habitables = [self.edificio.actividades[nodo] for nodo in nodos_no_habitables]
+        actividades_permutadas = actividades_no_habitables[:]
+        random.shuffle(actividades_permutadas)
+
+        # Asignar las actividades permutadas a los nodos no habitables
+        for nodo, actividad in zip(nodos_no_habitables, actividades_permutadas):
+            ruido_total = self.edificio.espacios[nodo].calcular_ruido(self.edificio.materiales, self.edificio.ruidos, aristas)
             umbral_ajustado = max(ruido_total, 40) + 5  # Margen de 5 dB
-            self.edificio.agregar_actividad(espacio_id, actividad_aleatoria, umbral_ajustado)
+            self.edificio.agregar_actividad(nodo, actividad, umbral_ajustado)
 
         # Recalcular habitabilidad
         self.edificio.ajustar_habitabilidad(aristas)
 
         # Actualizar el grafo
         self.refrescar_grafo()
+
 
     def restablecer_grafo(self):
         """Restaura las actividades y umbrales originales."""
