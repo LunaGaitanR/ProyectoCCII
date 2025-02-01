@@ -53,5 +53,3 @@ Pipfile.lock
 # Archivos de configuración de poetry
 poetry.lock
 
-# Lista de dependencias
-requirements.txt
