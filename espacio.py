@@ -34,6 +34,6 @@ class Espacio:
                 if material:
                     for ruido in ruidos.values():
                         absorcion = material.resistencias.get(str(ruido.frecuencia) + 'hz', 0)
-                        ruido_total += ruido.intensidad * absorcion * 2  # Multiplicamos por 2 para simular ambos lados
+                        ruido_total += ruido.intensidad * absorcion * 3  # Multiplicamos por 2 para simular ambos lados
 
         return ruido_total
