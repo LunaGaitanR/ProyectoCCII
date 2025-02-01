@@ -4,7 +4,7 @@ from edificio import Edificio
 from ruido import Ruido
 from espacio import Espacio
 from material import Material
-from grafo import imprimir_grafo
+from grafo import imprimir_grafo, imprimir_grafo_coloreado
 
 class Aplicacion:
     """
@@ -62,38 +62,55 @@ class Aplicacion:
         return edificio
 
     def crear_interfaz(self):
-        """Genera la interfaz gráfica con campos para modificar ruidos."""
-        tk.Label(self.root, text="Modifique los valores de ruido y genere el grafo", font=("Arial", 12, "bold")).pack(pady=10)
+        """Genera la interfaz gráfica con campos para modificar solo la intensidad de los ruidos."""
+        tk.Label(self.root, text="Modifique la intensidad de los ruidos y genere el grafo", font=("Arial", 12, "bold")).pack(pady=10)
 
         frame_ruidos = tk.Frame(self.root)
         frame_ruidos.pack()
 
-        # Crear campos de entrada para los ruidos
+        # Crear campos de entrada solo para la intensidad
         for i, (nombre, datos) in enumerate(self.ruidos.items()):
-            tk.Label(frame_ruidos, text=f"{nombre}:").grid(row=i, column=0, padx=10, pady=5)
-
-            freq_entry = tk.Entry(frame_ruidos, width=10)
-            freq_entry.insert(0, str(datos["frecuencia"]))
-            freq_entry.grid(row=i, column=1)
+            tk.Label(frame_ruidos, text=f"{nombre} (Frecuencia: {datos['frecuencia']} Hz):").grid(row=i, column=0, padx=10, pady=5)
 
             inten_entry = tk.Entry(frame_ruidos, width=10)
             inten_entry.insert(0, str(datos["intensidad"]))
-            inten_entry.grid(row=i, column=2)
+            inten_entry.grid(row=i, column=1)
 
-            self.ruido_entries[nombre] = (freq_entry, inten_entry)
+            self.ruido_entries[nombre] = inten_entry  # Solo guardamos la intensidad
 
         # Botón para aplicar cambios y generar grafo
         tk.Button(self.root, text="Generar Grafo", command=self.actualizar_ruidos_y_generar_grafo, font=("Arial", 12)).pack(pady=20)
+
+        # Botón para generar grafo con coloreado gradual
+        tk.Button(self.root, text="Coloreado del Grafo", command=self.generar_grafo_coloreado, font=("Arial", 12)).pack(pady=10)
+
+    def generar_grafo_coloreado(self):
+        """Genera el grafo con coloreado gradual basado en el ruido."""
+        aristas = {
+            ('H2', 'H3'): 'Ladrillo',
+            ('H1', 'S'): 'Loseta',
+            ('H1', 'H5'): 'Ladrillo',
+            ('S', 'H4'): 'Ladrillo',
+            ('S', 'E'): 'Ladrillo',
+            ('H4', 'E'): 'Loseta',
+            ('H5', 'E'): 'Loseta',
+            ('H3', 'E'): 'Loseta',
+        }
+
+        # Calcular habitabilidad
+        print("\nResumen de ruido por espacio:")
+        self.edificio.calcular_habitabilidad_espacios(aristas)
+
+        # Generar el grafo con gradiente de colores
+        imprimir_grafo_coloreado(self.edificio, aristas)
 
     def actualizar_ruidos_y_generar_grafo(self):
         """Actualiza los valores de ruido y genera el grafo."""
         try:
             # Leer valores modificados
-            for nombre, (freq_entry, inten_entry) in self.ruido_entries.items():
-                nueva_frecuencia = int(freq_entry.get())
+            for nombre, inten_entry in self.ruido_entries.items():
                 nueva_intensidad = int(inten_entry.get())
 
-                self.ruidos[nombre]["frecuencia"] = nueva_frecuencia
                 self.ruidos[nombre]["intensidad"] = nueva_intensidad
 
             # Actualizar ruidos en el edificio
@@ -122,4 +139,3 @@ class Aplicacion:
 
         except ValueError:
             messagebox.showerror("Error", "Ingrese valores numéricos válidos.")
-
