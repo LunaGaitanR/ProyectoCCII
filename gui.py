@@ -31,6 +31,9 @@ class Aplicacion:
         edificio.agregar_material(Material("Ladrillo", 0.02, 0.04))
         edificio.agregar_material(Material("Loseta", 0.06, 0.04))
         edificio.agregar_material(Material("Espuma", 0.55, 0.65))
+        # Materiales adicionales
+        edificio.agregar_material(Material("Aislante Fuerte", 0.70, 0.80))
+        edificio.agregar_material(Material("Vidrio Doble", 0.50, 0.60))
 
         # Espacios
         edificio.agregar_espacio(Espacio("H1", 4, 2, 0))
@@ -104,7 +107,7 @@ class Aplicacion:
         tk.Button(frame_reset, text="Restablecer", command=self.restablecer_grafo, font=("Arial", 12)).pack(pady=10)
 
     def ajustar_espacios(self):
-        """Intercambia las actividades de los nodos no habitables para que todos los nodos sean habitables."""
+        """Primero intenta ajustar el material del espacio con materiales adicionales; si no funciona, intercambia actividades."""
         aristas = {
             ('H2', 'H3'): 'Ladrillo',
             ('H1', 'S'): 'Loseta',
@@ -114,6 +117,17 @@ class Aplicacion:
             ('H4', 'E'): 'Loseta',
             ('H5', 'E'): 'Loseta',
             ('H3', 'E'): 'Loseta',
+        }
+
+        # Mapeo explícito del material actual por nodo
+        materiales_por_nodo = {
+            'H1': 'Ladrillo',
+            'H2': 'Loseta',
+            'H3': 'Ladrillo',
+            'H4': 'Espuma',
+            'H5': 'Ladrillo',
+            'S': 'Loseta',
+            'E': 'Ladrillo',
         }
 
         # Identificar nodos habitables y no habitables
@@ -133,22 +147,52 @@ class Aplicacion:
             messagebox.showinfo("Info", "Todos los nodos ya son habitables.")
             return
 
-        # Intercambiar actividades entre nodos no habitables
-        actividades_no_habitables = [self.edificio.actividades[nodo] for nodo in nodos_no_habitables]
-        actividades_permutadas = actividades_no_habitables[:]
-        random.shuffle(actividades_permutadas)
+        # Materiales adicionales priorizados
+        materiales_prioritarios = ["Aislante Fuerte", "Vidrio Doble"]
 
-        # Asignar las actividades permutadas a los nodos no habitables
-        for nodo, actividad in zip(nodos_no_habitables, actividades_permutadas):
-            ruido_total = self.edificio.espacios[nodo].calcular_ruido(self.edificio.materiales, self.edificio.ruidos, aristas)
-            umbral_ajustado = max(ruido_total, 40) + 5  # Margen de 5 dB
-            self.edificio.agregar_actividad(nodo, actividad, umbral_ajustado)
+        # Intentar ajustar materiales primero
+        for nodo in nodos_no_habitables:
+            material_actual = materiales_por_nodo.get(nodo, "Desconocido")  # Obtener material actual del nodo
+            material_cambiado = False  # Flag para rastrear si el material fue cambiado
+
+            # Intentar usar materiales adicionales primero
+            for material_id in materiales_prioritarios:
+                if material_id != material_actual:  # Evitar cambiar por el mismo material
+                    ruido_total = self.edificio.espacios[nodo].calcular_ruido(self.edificio.materiales, self.edificio.ruidos, aristas)
+                    if ruido_total <= self.edificio.umbrales_habitabilidad.get(nodo, float('inf')):
+                        print(f"Recomendación de ajuste: Cambiar el material de {material_actual} a {material_id} en el nodo {nodo}")
+                        materiales_por_nodo[nodo] = material_id  # Actualizar material del nodo
+                        material_cambiado = True
+                        break
+
+            # Si los materiales adicionales no funcionan, probar otros materiales
+            if not material_cambiado:
+                for material_id, material in self.edificio.materiales.items():
+                    if material_id != material_actual:  # Evitar cambiar por el mismo material
+                        ruido_total = self.edificio.espacios[nodo].calcular_ruido(self.edificio.materiales, self.edificio.ruidos, aristas)
+                        if ruido_total <= self.edificio.umbrales_habitabilidad.get(nodo, float('inf')):
+                            print(f"Recomendación de ajuste: Cambiar el material de {material_actual} a {material_id} en el nodo {nodo}")
+                            materiales_por_nodo[nodo] = material_id  # Actualizar material del nodo
+                            break
+                else:
+                    # Si ningún material resuelve el problema, pasar a intercambiar actividades
+                    actividades_no_habitables = [self.edificio.actividades[nodo] for nodo in nodos_no_habitables]
+                    actividades_permutadas = actividades_no_habitables[:]
+                    random.shuffle(actividades_permutadas)
+
+                    # Asignar las actividades permutadas a los nodos no habitables
+                    for nodo, actividad in zip(nodos_no_habitables, actividades_permutadas):
+                        ruido_total = self.edificio.espacios[nodo].calcular_ruido(self.edificio.materiales, self.edificio.ruidos, aristas)
+                        umbral_ajustado = max(ruido_total, 40) + 5  # Margen de 5 dB
+                        self.edificio.agregar_actividad(nodo, actividad, umbral_ajustado)
 
         # Recalcular habitabilidad
         self.edificio.ajustar_habitabilidad(aristas)
 
         # Actualizar el grafo
         self.refrescar_grafo()
+
+
 
 
     def restablecer_grafo(self):
