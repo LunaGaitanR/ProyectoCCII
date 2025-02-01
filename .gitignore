@@ -1,0 +1,57 @@
+# Entornos virtuales
+venv/
+env/
+.venv/
+.env/
+
+# Archivos de compilación de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Archivos de configuración de IDE
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Archivos de configuración de Jupyter Notebook
+.ipynb_checkpoints
+
+# Archivos de logs
+*.log
+
+# Archivos de caché
+*.cache
+
+# Archivos de distribución
+*.egg-info/
+dist/
+build/
+
+# Archivos de configuración de pruebas
+.coverage
+.coverage.*
+nosetests.xml
+test-results/
+
+# Archivos de configuración de Pytest
+.pytest_cache/
+
+# Archivos de configuración de flake8
+.flake8
+
+# Archivos de configuración de mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Archivos de configuración de pipenv
+Pipfile.lock
+
+# Archivos de configuración de poetry
+poetry.lock
+
+# Lista de dependencias
+requirements.txt
