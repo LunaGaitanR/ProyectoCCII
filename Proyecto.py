@@ -27,7 +27,7 @@ class Espacio:
                         intensidad = ruido.intensidad
                         absorcion = material.resistencias.get(str(frecuencia) + 'hz')
                         if absorcion is not None:
-                            ruido_total += intensidad * absorcion
+                            ruido_total += intensidad * absorcion*2
                         else:
                             print(f"Advertencia: No se encontró absorción para {material_id} a {frecuencia} Hz.")
                 else:
@@ -57,7 +57,7 @@ class Edificio:
     def agregar_ruido(self, ruido):
         self.ruidos[ruido.id_ruido] = ruido
 
-    def agregar_umbral(self, espacio_id, umbral):
+    def agregar_actividad(self, espacio_id, id_actividad, umbral):
         self.umbrales_habitabilidad[espacio_id] = umbral
 
     def calcular_habitabilidad_espacios(self, aristas):
@@ -96,7 +96,7 @@ class Main:
     edificio.agregar_material(Material("Ladrillo", 0.02, 0.04))
     edificio.agregar_material(Material("Loseta", 0.06, 0.04))
     edificio.agregar_material(Material("Espuma", 0.55, 0.65))
-
+    
     # Espacios
     edificio.agregar_espacio(Espacio("H1", 4, 2, 0))
     edificio.agregar_espacio(Espacio("H2", 4, 4, 0))
@@ -112,13 +112,13 @@ class Main:
     edificio.agregar_ruido(Ruido("Gimnasio", 500, 65))
 
     # Umbrales de habitabilidad, estos están dados por las actividades que se hace por espacio
-    edificio.agregar_umbral("H1", 70) #Tienda
-    edificio.agregar_umbral("H2", 40) #Dormitorio
-    edificio.agregar_umbral("H3", 40) #Dormitorio
-    edificio.agregar_umbral("H4", 65) #Gimnasio
-    edificio.agregar_umbral("H5", 50) #Varios
-    edificio.agregar_umbral("S", 35) #Estudio
-    edificio.agregar_umbral("E", 50) #Varios
+    edificio.agregar_actividad("H1", 'Tienda',70) 
+    edificio.agregar_actividad("H2", 'Dormitorio',40) 
+    edificio.agregar_actividad("H3", 'Dormitorio', 40) 
+    edificio.agregar_actividad("H4", 'Gimnasio',65) 
+    edificio.agregar_actividad("H5", 'Varios', 50) 
+    edificio.agregar_actividad("S", 'Estudio',35) 
+    edificio.agregar_actividad("E", 'Varios', 50) 
 
     aristas = {
         ('H2', 'H3'): 'Ladrillo',  # Usa 'Ladrillo' (el ID) y no el objeto Material
