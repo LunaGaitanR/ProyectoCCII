@@ -4,7 +4,7 @@ from edificio import Edificio
 from ruido import Ruido
 from espacio import Espacio
 from material import Material
-from grafo import imprimir_grafo, imprimir_grafo_coloreado
+from grafo import imprimir_grafo, imprimir_grafo_coloreado, imprimir_grafo_coloreado_vecinos
 
 class Aplicacion:
     """
@@ -84,6 +84,9 @@ class Aplicacion:
         # Botón para generar grafo con coloreado gradual
         tk.Button(self.root, text="Coloreado del Grafo", command=self.generar_grafo_coloreado, font=("Arial", 12)).pack(pady=10)
 
+        # Botón para coloración restringida de vecinos
+        tk.Button(self.root, text="Coloración por Vecinos", command=self.generar_grafo_coloreado_vecinos, font=("Arial", 12)).pack(pady=10)
+
     def generar_grafo_coloreado(self):
         """Genera el grafo con coloreado gradual basado en el ruido."""
         aristas = {
@@ -103,6 +106,23 @@ class Aplicacion:
 
         # Generar el grafo con gradiente de colores
         imprimir_grafo_coloreado(self.edificio, aristas)
+
+    def generar_grafo_coloreado_vecinos(self):
+        """Genera el grafo con nodos coloreados sin que vecinos compartan color."""
+        aristas = {
+            ('H2', 'H3'): 'Ladrillo',
+            ('H1', 'S'): 'Loseta',
+            ('H1', 'H5'): 'Ladrillo',
+            ('S', 'H4'): 'Ladrillo',
+            ('S', 'E'): 'Ladrillo',
+            ('H4', 'E'): 'Loseta',
+            ('H5', 'E'): 'Loseta',
+            ('H3', 'E'): 'Loseta',
+        }
+
+        # Generar el grafo con coloración restringida
+        imprimir_grafo_coloreado_vecinos(self.edificio, aristas)
+
 
     def actualizar_ruidos_y_generar_grafo(self):
         """Actualiza los valores de ruido y genera el grafo."""
